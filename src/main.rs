@@ -1,5 +1,7 @@
 fn main_calls() {
     println!("Main calls me");
+    test_1_calls();
+    test_2_calls();
 }
 
 fn test_1_calls() {
