@@ -33,4 +33,69 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
-    
+  
+  test:
+    name: Test with ${{ matrix.rust }} rust on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        rust: [stable, nightly]
+        
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y \
+            libasound2-dev libudev-dev build-essential pkg-config libssl-dev
+        
+      - name: Install Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: ${{ matrix.rust == 'nightly' && 'llvm-tools-preview' || '' }}
+          
+      - name: Install grcov for Rust ${{ matrix.rust }}
+        uses: actions-rs/install@v0.1
+        if: matrix.rust == 'nightly'
+        with:
+          crate: grcov
+          version: latest
+        
+      - name: Cache rust build products
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-cargo-${{ matrix.rust }}-
+            
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all
+          
+      - name: grcov environment
+        if: matrix.rust == 'nightly'
+        run: |
+          echo LLVM_PROFILE_FILE="your_name-%p-%m.profraw" >> $GITHUB_ENV
+          echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
+          echo RUSTFLAGS="-Zinstrument-coverage -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort" >> $GITHUB_ENV
+          echo RUSTDOCFLAGS="-Cpanic=abort" >> $GITHUB_ENV
+        
+      - name: Make and test project
+        run: cargo build && cargo test
+        
+      - name: Create coverage files
+        if: matrix.rust == 'nightly'
+        run: |
+          grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
+      
