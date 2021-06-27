@@ -83,19 +83,27 @@ jobs:
           command: build
           args: --all
           
-      - name: grcov environment
+      - name: Setup code-coverage instrumentation for ${{ matrix.rust }}
         if: matrix.rust == 'nightly'
         run: |
           echo LLVM_PROFILE_FILE="your_name-%p-%m.profraw" >> $GITHUB_ENV
           echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
-          echo RUSTFLAGS="-Zinstrument-coverage -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort" >> $GITHUB_ENV
+          echo RUSTFLAGS="-Zinstrument-coverage" >> $GITHUB_ENV
           echo RUSTDOCFLAGS="-Cpanic=abort" >> $GITHUB_ENV
         
       - name: Make and test project
         run: cargo build && cargo test
         
-      - name: Create coverage files
+      - name: Create code-coverage files for ${{ matrix.rust }}
         if: matrix.rust == 'nightly'
         run: |
-          grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
-      
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o lcov.info
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
+        if: matrix.rust == 'nightly'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
+          fail_ci_if_error: true
+          verbose: true
