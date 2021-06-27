@@ -1,5 +1,3 @@
-
-
 fn main_calls() {
     println!("Main calls me");
 }
@@ -18,10 +16,18 @@ fn main() {
 
 #[test]
 fn test_1() {
-    test_1_calls();
+    for _ in 0..1024 {
+        test_1_calls();
+    }
 }
 
 #[test]
 fn test_2() {
-    test_2_calls();
+    for i in 0..2048 {
+        if i % 2 == 0 {
+            test_2_calls();
+        } else if false {
+            test_1_calls();
+        }
+    }
 }
