@@ -50,7 +50,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y \
             autoconf automake cmake libboost-dev libboost-filesystem-dev libgmp-dev \
             librocksdb-dev libssl-dev libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev \
-            liblz4-dev libzstd-dev libtool golang-go clang-format cmake-format
+            liblz4-dev libzstd-dev libtool golang-go clang-format cmake
           git clone -b v6.11.4 https://github.com/facebook/rocksdb
           cd rocksdb && make shared_lib && make install
           
