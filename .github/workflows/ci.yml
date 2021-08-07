@@ -40,8 +40,9 @@ jobs:
     steps:
       - name: Checkout Arbitrum
         uses: actions/checkout@v2
-        repository: OffchainLabs/arbitrum
-        submodules: true
+        with: 
+          repository: OffchainLabs/arbitrum
+          submodules: true
 
       - name: Install dependencies
         run: |
