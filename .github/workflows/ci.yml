@@ -58,8 +58,17 @@ jobs:
         run: |
           mkdir packages/arb-avm-cpp/debug/
           cd packages/arb-avm-cpp/debug/ && cmake .. -DCMAKE_BUILD_TYPE=Debug && make -j && cd -
+
+      - name: Test Node's C++ Database
+        run: |
           ./packages/arb-avm-cpp/debug/bin/avm_tests
+
+      - name: Test Node's RPC
+        run: |
           cd packages/arb-rpc-node/ && go test ./... && cd -
+
+      - name: Test Node's Core
+        run: |
           cd packages/arb-node-core/ && go test ./... && cd -
           
   test:
